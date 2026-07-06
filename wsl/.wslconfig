@@ -1,0 +1,9 @@
+[wsl2]
+memory=16GB
+processors=8
+swap=4GB
+localhostForwarding=true
+dnsTunneling=true
+autoProxy=true
+firewall=true
+networkingMode=nat
