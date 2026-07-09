@@ -1,0 +1,28 @@
+# ~/.bashrc managed by ~/src/dotfiles
+
+case $- in
+  *i*) ;;
+  *) return ;;
+esac
+
+# Dotfiles shell config
+if [ -f "$HOME/src/dotfiles/shell/env.sh" ]; then
+  . "$HOME/src/dotfiles/shell/env.sh"
+fi
+
+if [ -f "$HOME/src/dotfiles/shell/aliases.sh" ]; then
+  . "$HOME/src/dotfiles/shell/aliases.sh"
+fi
+
+if [ -f "$HOME/src/dotfiles/shell/functions.sh" ]; then
+  . "$HOME/src/dotfiles/shell/functions.sh"
+fi
+
+if [ -f "$HOME/src/dotfiles/shell/prompt.sh" ]; then
+  . "$HOME/src/dotfiles/shell/prompt.sh"
+fi
+
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
