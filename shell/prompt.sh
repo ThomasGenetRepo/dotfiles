@@ -121,4 +121,12 @@ set_prompt() {
   fi
 }
 
-PROMPT_COMMAND=set_prompt
+# set_prompt must run FIRST so its `local exit_code=$?` sees the exit status
+# of the user's last command, not of another PROMPT_COMMAND entry. Anything
+# already registered (set_tmux_pane_title from functions.sh) is preserved
+# and runs after it.
+case "$PROMPT_COMMAND" in
+*set_prompt*) ;;
+"") PROMPT_COMMAND="set_prompt" ;;
+*) PROMPT_COMMAND="set_prompt; $PROMPT_COMMAND" ;;
+esac

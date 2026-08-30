@@ -1,9 +1,22 @@
 # ~/.bashrc managed by ~/src/dotfiles
 
 case $- in
-  *i*) ;;
-  *) return ;;
+*i*) ;;
+*) return ;;
 esac
+
+# History: append on exit instead of overwriting, keep a lot of it, and
+# skip duplicates / space-prefixed commands. (This bashrc replaces the
+# distro default, so these must be set here or bash falls back to its
+# bare defaults: 500 lines, clobbered per shell.)
+shopt -s histappend
+HISTCONTROL=ignoreboth
+HISTSIZE=100000
+HISTFILESIZE=200000
+
+# Re-check the window size after each command (keeps LINES/COLUMNS right
+# after a tmux pane resize).
+shopt -s checkwinsize
 
 # Dotfiles shell config
 if [ -f "$HOME/src/dotfiles/shell/env.sh" ]; then
@@ -22,7 +35,15 @@ if [ -f "$HOME/src/dotfiles/shell/prompt.sh" ]; then
   . "$HOME/src/dotfiles/shell/prompt.sh"
 fi
 
+# Programmable completion (git, ssh hosts, etc.)
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+  fi
+fi
 
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion

@@ -6,3 +6,7 @@ export VISUAL="nvim"
 export PAGER="less"
 
 export LESS="-R"
+export MANPAGER="less -R --use-color -Dd+r -Du+b"
+
+# Claude code use lsp
+export ENABLE_LSP_TOOL=1
