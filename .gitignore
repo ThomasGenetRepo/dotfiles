@@ -3,3 +3,6 @@
 *.swo
 *.tmp
 .cache/
+
+# Per-machine Claude Code permission grants; not portable config
+.claude/settings.local.json
