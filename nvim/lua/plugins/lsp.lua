@@ -10,6 +10,7 @@ return {
 	-- that's done via vim.lsp.enable() in the native LSP client.
 	{
 		"williamboman/mason.nvim",
+		lazy = false,
 		build = ":MasonUpdate",
 		dependencies = {
 			"WhoIsSethDaniel/mason-tool-installer.nvim",
@@ -21,12 +22,21 @@ return {
 				"lua-language-server",
 				"gofumpt",
 				"terraform-ls",
+				"typescript-language-server",
+				"svelte-language-server",
+				"css-lsp",
+				"html-lsp",
+				"yaml-language-server",
 
 				-- formatters
 				"goimports",
-				"ruff",
 				"stylua",
 				"shfmt",
+				"prettier",
+				"jq",
+
+				-- linters
+				"eslint_d",
 			},
 		},
 		config = function(_, opts)
@@ -42,9 +52,66 @@ return {
 		build = ":TSUpdate",
 		lazy = false,
 		config = function()
-			require("nvim-treesitter").setup({
+			local ts = require("nvim-treesitter")
+
+			ts.setup({
 				install_dir = vim.fn.stdpath("data") .. "/site",
 			})
+
+			-- The main branch has no `ensure_installed` option, so install
+			-- explicitly. Already-installed parsers are a no-op, and the
+			-- call is async -- it won't block startup.
+			local parsers = {
+				"bash",
+				"css",
+				"diff",
+				"dockerfile",
+				"gitcommit",
+				"gitignore",
+				"go",
+				"gomod",
+				"gosum",
+				"gotmpl",
+				"gowork",
+				"graphql",
+				"hcl",
+				"html",
+				"javascript",
+				"json",
+				"lua",
+				"make",
+				"markdown",
+				"markdown_inline",
+				"nginx",
+				"proto",
+				"python",
+				"query",
+				"regex",
+				"scss",
+				"sql",
+				"ssh_config",
+				"svelte",
+				"terraform",
+				"toml",
+				"tsx",
+				"typescript",
+				"vim",
+				"vimdoc",
+				"yaml",
+			}
+
+			local installed = {}
+			for _, lang in ipairs(ts.get_installed()) do
+				installed[lang] = true
+			end
+
+			local missing = vim.tbl_filter(function(lang)
+				return not installed[lang]
+			end, parsers)
+
+			if #missing > 0 then
+				ts.install(missing, { summary = true })
+			end
 
 			local group = vim.api.nvim_create_augroup("UserTreesitterStart", { clear = true })
 
@@ -78,7 +145,7 @@ return {
 		opts = {
 			keymap = {
 				preset = "default",
-				["<CR>"] = { "accept", "fallback" },
+				["<Tab>"] = { "accept", "fallback" },
 			},
 
 			appearance = {
@@ -87,6 +154,23 @@ return {
 
 			sources = {
 				default = { "lsp", "path", "snippets", "buffer" },
+			},
+
+			cmdline = {
+				sources = function()
+					local type = vim.fn.getcmdtype()
+					if type == "/" or type == "?" then
+						return { "buffer" }
+					end
+					if type == ":" or type == "@" then
+						return { "cmdline", "path" }
+					end
+					return {}
+				end,
+
+				completion = {
+					menu = { auto_show = true },
+				},
 			},
 
 			completion = {
@@ -148,5 +232,41 @@ return {
 				},
 			},
 		},
+	},
+
+	-- nvim-lint: linter diagnostics separate from the LSP servers above.
+	-- (e.g. eslint_d catches things ts_ls won't, and runs even when a
+	-- project has no LSP-visible tsconfig.)
+	{
+		"mfussenegger/nvim-lint",
+		event = { "BufReadPre", "BufNewFile" },
+		config = function()
+			local lint = require("lint")
+
+			lint.linters_by_ft = {
+				javascript = { "eslint_d" },
+				javascriptreact = { "eslint_d" },
+				typescript = { "eslint_d" },
+				typescriptreact = { "eslint_d" },
+				svelte = { "eslint_d" },
+				python = { "ruff" },
+			}
+
+			-- Run ruff through `uv` (see conform's ruff_format override in
+			-- tools.lua for why) instead of the mason-installed binary.
+			lint.linters.ruff = vim.tbl_deep_extend("force", lint.linters.ruff, {
+				cmd = "uv",
+				args = vim.list_extend({ "run", "--", "ruff" }, lint.linters.ruff.args),
+			})
+
+			local group = vim.api.nvim_create_augroup("UserLint", { clear = true })
+
+			vim.api.nvim_create_autocmd({ "BufWritePost", "BufReadPost", "InsertLeave" }, {
+				group = group,
+				callback = function()
+					lint.try_lint()
+				end,
+			})
+		end,
 	},
 }

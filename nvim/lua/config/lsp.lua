@@ -10,27 +10,17 @@
 -- so Mason's bin directory is available on Neovim's PATH.
 
 -- ---------------------------------------------------------------------------
--- Filetypes
--- ---------------------------------------------------------------------------
-
-vim.filetype.add({
-	extension = {
-		tf = "terraform",
-		tfvars = "terraform-vars",
-	},
-})
-
--- ---------------------------------------------------------------------------
 -- Diagnostics
 -- ---------------------------------------------------------------------------
 
 vim.diagnostic.config({
-	virtual_text = {
-		spacing = 4,
-		source = "if_many",
-		prefix = "●",
-	},
+	-- Keep inline diagnostics off by default.
+	-- Long Terraform/module errors are unreadable as virtual text.
+	virtual_text = false,
+
+	-- Keep virtual lines off unless manually enabled.
 	virtual_lines = false,
+
 	signs = {
 		text = {
 			[vim.diagnostic.severity.ERROR] = "E",
@@ -39,17 +29,34 @@ vim.diagnostic.config({
 			[vim.diagnostic.severity.HINT] = "H",
 		},
 	},
+
 	underline = true,
 	update_in_insert = false,
 	severity_sort = true,
+
 	float = {
 		border = "rounded",
-		source = "if_many",
+		source = "always",
 		header = "",
 		prefix = "",
+		focusable = true,
+		max_width = 100,
+		wrap = true,
 	},
 })
 
+vim.keymap.set("n", "<leader>e", function()
+	vim.diagnostic.open_float(nil, {
+		scope = "line",
+		border = "rounded",
+		source = "always",
+		focusable = true,
+		max_width = 100,
+		wrap = true,
+	})
+end, {
+	desc = "Show line diagnostic",
+})
 -- ---------------------------------------------------------------------------
 -- LSP server configs
 -- ---------------------------------------------------------------------------
@@ -111,6 +118,10 @@ vim.lsp.config("lua_ls", {
 			},
 			workspace = {
 				checkThirdParty = false,
+				library = {
+					vim.env.VIMRUNTIME,
+					vim.fn.stdpath("config"),
+				},
 			},
 			telemetry = {
 				enable = false,
@@ -131,11 +142,78 @@ vim.lsp.config("terraformls", {
 	},
 })
 
+vim.lsp.config("ts_ls", {
+	cmd = { "typescript-language-server", "--stdio" },
+	filetypes = {
+		"javascript",
+		"javascriptreact",
+		"typescript",
+		"typescriptreact",
+	},
+	root_markers = { "tsconfig.json", "jsconfig.json", "package.json", ".git" },
+})
+
+vim.lsp.config("svelte", {
+	cmd = { "svelteserver", "--stdio" },
+	filetypes = { "svelte" },
+	root_markers = { "package.json", ".git" },
+})
+
+vim.lsp.config("cssls", {
+	cmd = { "vscode-css-language-server", "--stdio" },
+	filetypes = { "css", "scss", "less" },
+	root_markers = { "package.json", ".git" },
+	settings = {
+		css = { validate = true },
+		scss = { validate = true },
+		less = { validate = true },
+	},
+})
+
+vim.lsp.config("html", {
+	cmd = { "vscode-html-language-server", "--stdio" },
+	filetypes = { "html" },
+	root_markers = { "package.json", ".git" },
+})
+
+vim.lsp.config("yamlls", {
+	cmd = { "yaml-language-server", "--stdio" },
+	filetypes = { "yaml" },
+
+	-- *.yaml.tmpl buffers are filetype=yaml (see config/filetype.lua) so
+	-- treesitter highlights them, but they are not valid YAML -- every
+	-- `{{- if ... }}` control line would be a parse error. Skipping the
+	-- on_dir callback keeps yamlls from attaching to those buffers.
+	root_dir = function(bufnr, on_dir)
+		local name = vim.api.nvim_buf_get_name(bufnr)
+		if name:match("%.tmpl$") then
+			return
+		end
+		on_dir(vim.fs.root(bufnr, { ".git" }) or vim.fn.getcwd())
+	end,
+
+	settings = {
+		yaml = {
+			-- No schema auto-detection: schema store lookups produce a lot
+			-- of false positives on templated / non-standard YAML.
+			schemaStore = { enable = false, url = "" },
+			schemas = {},
+			validate = true,
+			keyOrdering = false,
+		},
+	},
+})
+
 vim.lsp.enable({
 	"gopls",
 	"basedpyright",
 	"lua_ls",
 	"terraformls",
+	"ts_ls",
+	"svelte",
+	"cssls",
+	"html",
+	"yamlls",
 })
 
 -- ---------------------------------------------------------------------------
@@ -175,6 +253,15 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		-- Workspace/symbol tools.
 		map("n", "<leader>rn", vim.lsp.buf.rename, opts("Rename symbol"))
 		map("n", "<leader>ca", vim.lsp.buf.code_action, opts("Code action"))
+		map("n", "<leader>oi", function()
+			vim.lsp.buf.code_action({
+				context = {
+					only = { "source.organizeImports" },
+					diagnostics = {},
+				},
+				apply = true,
+			})
+		end, opts("Organize imports"))
 		map("n", "<leader>ds", vim.lsp.buf.document_symbol, opts("Document symbols"))
 		map("n", "<leader>ws", vim.lsp.buf.workspace_symbol, opts("Workspace symbols"))
 
@@ -216,7 +303,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 			})
 		end, opts("Next error"))
 
-		map("n", "<leader>q", vim.diagnostic.setloclist, opts("Diagnostics location list"))
+		map("n", "<leader>xq", vim.diagnostic.setloclist, opts("Diagnostics location list"))
 
 		-- Toggle inlay hints if supported by the server.
 		if vim.lsp.inlay_hint then

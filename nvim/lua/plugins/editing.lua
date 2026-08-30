@@ -6,6 +6,18 @@ return {
 	{
 		"christoomey/vim-tmux-navigator",
 		lazy = false,
+		init = function()
+			-- Disable all 5 default mappings so we can omit <C-\> (its
+			-- "previous pane" binding), which otherwise wins the collision
+			-- against floaterm's toggle keymap.
+			vim.g.tmux_navigator_no_mappings = 1
+		end,
+		keys = {
+			{ "<c-h>", "<cmd>TmuxNavigateLeft<cr>", desc = "Navigate left (tmux-aware)" },
+			{ "<c-j>", "<cmd>TmuxNavigateDown<cr>", desc = "Navigate down (tmux-aware)" },
+			{ "<c-k>", "<cmd>TmuxNavigateUp<cr>", desc = "Navigate up (tmux-aware)" },
+			{ "<c-l>", "<cmd>TmuxNavigateRight<cr>", desc = "Navigate right (tmux-aware)" },
+		},
 	},
 
 	-- Add/change/delete surrounding quotes, parens, brackets, tags, etc.
@@ -22,6 +34,15 @@ return {
 				highlight = "sh",
 				update_n_lines = "sn",
 			},
+		},
+	},
+
+	{
+		"echasnovski/mini.ai",
+		version = false,
+		event = "VeryLazy",
+		opts = {
+			n_lines = 500,
 		},
 	},
 
@@ -88,5 +109,31 @@ return {
 		"windwp/nvim-autopairs",
 		event = "InsertEnter",
 		config = true,
+	},
+
+	-- Pin a handful of files you're actively bouncing between and jump
+	-- straight to them, instead of re-fuzzy-finding each time.
+	{
+		"ThePrimeagen/harpoon",
+		branch = "harpoon2",
+		dependencies = { "nvim-lua/plenary.nvim" },
+		config = function()
+			local harpoon = require("harpoon")
+			harpoon:setup()
+
+			vim.keymap.set("n", "<leader>a", function()
+				harpoon:list():add()
+			end, { desc = "Harpoon: add file" })
+
+			vim.keymap.set("n", "<C-e>", function()
+				harpoon.ui:toggle_quick_menu(harpoon:list())
+			end, { desc = "Harpoon: toggle menu" })
+
+			for i = 1, 4 do
+				vim.keymap.set("n", "<leader>" .. i, function()
+					harpoon:list():select(i)
+				end, { desc = "Harpoon: jump to file " .. i })
+			end
+		end,
 	},
 }

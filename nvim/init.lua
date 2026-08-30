@@ -29,10 +29,18 @@ vim.o.inccommand = "split"
 
 vim.o.cursorline = true
 
-vim.keymap.set("n", "<leader>w", "<cmd>w<cr>")
-vim.keymap.set("n", "<leader>q", "<cmd>q<cr>")
+-- Show a visible mark over trailing whitespace. Setting listchars replaces
+-- the whole option, so tab must be respecified or tabs render as "^I".
+vim.opt.list = true
+vim.opt.listchars = { tab = "  ", trail = "·" }
 
+-- Native popup-menu-style cmdline completion (reuses Pmenu/PmenuSel/
+-- winborder), instead of the classic single-line wildmenu bar.
+vim.opt.wildmenu = true
+vim.opt.wildoptions = "pum"
+
+require("config.filetype")
+require("config.keymaps")
 require("config.lazy")
 require("config.lsp")
-require("config.keymaps")
 require("config.ui")

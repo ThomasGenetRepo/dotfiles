@@ -1,4 +1,4 @@
-local default_theme = "nightfox"
+local default_theme = "duskfox"
 
 -- Maps a short theme name to its owning plugin (must match the "name" field below).
 local theme_plugin = {
