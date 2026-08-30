@@ -47,3 +47,32 @@ fi
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
+
+# fzf shell integration: Ctrl-R fuzzy history, Ctrl-T insert file path,
+# Alt-C cd into a directory, **<Tab> fuzzy completion. (Needs fzf >= 0.48
+# for --bash; older distro packages ship key-bindings.bash instead.)
+if command -v fzf >/dev/null 2>&1; then
+  eval "$(fzf --bash)"
+fi
+
+# zoxide: cd learns visited directories by frecency, so `cd dotf` jumps to
+# ~/src/dotfiles from anywhere. --cmd cd keeps plain cd behavior for paths
+# that exist; `cdi` opens an interactive fzf picker.
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init bash --cmd cd)"
+fi
+
+# Write each command to the history file as it runs, so new tmux panes see
+# it immediately (a pane otherwise only flushes history on exit). Existing
+# panes still don't ingest each other's entries live -- add `history -n`
+# here too if that's ever wanted.
+case "$PROMPT_COMMAND" in
+*"history -a"*) ;;
+*) PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }history -a" ;;
+esac
+
+# Machine-local config not tracked in git (work env vars, per-machine
+# paths, secrets). Kept last so it can override anything above.
+if [ -f "$HOME/.bashrc.local" ]; then
+  . "$HOME/.bashrc.local"
+fi

@@ -31,6 +31,7 @@ link() {
 }
 
 link shell/bashrc "$HOME/.bashrc"
+link readline/inputrc "$HOME/.inputrc"
 link tmux/tmux.conf "$HOME/.tmux.conf"
 link nvim "$HOME/.config/nvim"
 link eza "$HOME/.config/eza"

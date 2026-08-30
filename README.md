@@ -22,6 +22,7 @@ before being replaced. It also clones TPM if missing.
 | Repo path         | Target                    | Notes                                       |
 | ----------------- | ------------------------- | ------------------------------------------- |
 | `shell/bashrc`    | `~/.bashrc`               | Sources the rest of `shell/` by path        |
+| `readline/inputrc`| `~/.inputrc`              | History search on arrows, completion tweaks |
 | `tmux/tmux.conf`  | `~/.tmux.conf`            |                                             |
 | `nvim/`           | `~/.config/nvim`          |                                             |
 | `eza/`            | `~/.config/eza`           | Theme only                                  |
@@ -50,8 +51,9 @@ Required for the core setup to work as configured:
   `vim.lsp.config`/`vim.lsp.enable` API), **WezTerm**
 - **JetBrainsMono Nerd Font** — installed on the machine that renders the
   terminal (the Windows host under WSL)
-- **eza** (ls aliases), **fzf** (tmux-fzf + fzf-lua), **ripgrep**
-  (live grep), **bat** (superfile previews)
+- **eza** (ls aliases), **fzf ≥ 0.48** (shell keybindings via
+  `fzf --bash`, tmux-fzf, fzf-lua), **ripgrep** (live grep), **bat**
+  (superfile previews), **zoxide** (`cd` frecency jumps + superfile)
 - Toolchains Mason shells out to when installing servers/formatters:
   **node** (via nvm), **go**, **python3** (with venv), plus **uv** —
   ruff runs through `uv run` so projects use their pinned version
@@ -70,3 +72,5 @@ Optional / nice to have:
 - `shell/bashrc` is bash-only; macOS defaults to zsh (macOS pass pending).
 - `sync_obs` (shell/functions.sh) expects the Obsidian vault at
   `~/work/documentation/central-vault`.
+- Per-machine shell config (work env vars, secrets, path overrides)
+  goes in `~/.bashrc.local` — sourced last by bashrc, never tracked.

@@ -1,0 +1,29 @@
+# ~/.inputrc managed by ~/src/dotfiles
+# Applies to bash and every other readline program (psql, python, etc.).
+
+# Up/Down search history filtered by what's already typed
+# (type `git ` then Up to cycle only through git commands).
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+
+# Case-insensitive completion; also treat - and _ as equivalent.
+set completion-ignore-case on
+set completion-map-case on
+
+# Show all matches on the first Tab instead of beeping first.
+set show-all-if-ambiguous on
+set show-all-if-unmodified on
+
+# Color completion candidates by file type (uses LS_COLORS) and
+# highlight the part already typed.
+set colored-stats on
+set colored-completion-prefix on
+
+# Append / when completing a symlink that points at a directory.
+set mark-symlinked-directories on
+
+# Ask before dumping huge completion lists, never page them.
+set page-completions off
+set completion-query-items 200
+
+set bell-style none
