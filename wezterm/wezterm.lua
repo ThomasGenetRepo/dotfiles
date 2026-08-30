@@ -64,6 +64,9 @@ local is_linux = wezterm.target_triple:find("linux") ~= nil
 
 config.scrollback_lines = 10000
 
+-- Off by default in WezTerm; needed for image.nvim's inline image rendering.
+config.enable_kitty_graphics = true
+
 if is_windows then
   config.wsl_domains = {
     {
