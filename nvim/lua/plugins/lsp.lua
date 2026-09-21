@@ -187,9 +187,47 @@ return {
 					}, ","),
 
 					draw = {
+						-- Icon + label + description only -- the spelled-out "kind"
+						-- column (Function/Class/...) duplicated the icon, so it's
+						-- dropped in favor of giving the description more room.
 						columns = {
 							{ "kind_icon", "label", "label_description", gap = 1 },
-							{ "kind" },
+						},
+
+						components = {
+							-- Tint the label with the same color as its kind icon
+							-- (blue for functions, purple for classes, ...) instead
+							-- of a flat color, so kind is scannable at a glance
+							-- without reading the icon glyph. Copied from blink's
+							-- default `label` component with only the base
+							-- highlight group swapped for `ctx.kind_hl`.
+							label = {
+								highlight = function(ctx)
+									local label = ctx.label
+									local highlights = {
+										{ 0, #label, group = ctx.deprecated and "BlinkCmpLabelDeprecated" or ctx.kind_hl },
+									}
+									if ctx.label_detail then
+										table.insert(
+											highlights,
+											{ #label, #label + #ctx.label_detail, group = "BlinkCmpLabelDetail" }
+										)
+									end
+
+									if vim.list_contains(ctx.self.treesitter, ctx.source_id) and not ctx.deprecated then
+										vim.list_extend(
+											highlights,
+											require("blink.cmp.completion.windows.render.treesitter").highlight(ctx)
+										)
+									end
+
+									for _, idx in ipairs(ctx.label_matched_indices) do
+										table.insert(highlights, { idx, idx + 1, group = "BlinkCmpLabelMatch" })
+									end
+
+									return highlights
+								end,
+							},
 						},
 					},
 				},

@@ -108,7 +108,7 @@ return {
 				},
 				lualine_x = { "diagnostics" },
 				lualine_y = { "branch" },
-				lualine_z = {},
+				lualine_z = { "location", "progress" },
 			},
 			inactive_sections = {
 				lualine_c = { { "filename", path = 1 } },
@@ -211,7 +211,7 @@ return {
 		opts = {
 			formatters_by_ft = {
 				go = { "gofumpt", "goimports" },
-				python = { "ruff_format" },
+				python = { "ruff_organize_imports", "ruff_format" },
 				lua = { "stylua" },
 				json = { "jq" },
 				jsonc = { "jq" },
@@ -235,6 +235,23 @@ return {
 			-- dependency (e.g. a dev-dependency) - otherwise `uv run ruff`
 			-- has nothing to resolve and errors.
 			formatters = {
+				ruff_organize_imports = {
+					command = "uv",
+					args = {
+						"run",
+						"--",
+						"ruff",
+						"check",
+						"--fix",
+						"--force-exclude",
+						"--select=I001",
+						"--exit-zero",
+						"--no-cache",
+						"--stdin-filename",
+						"$FILENAME",
+						"-",
+					},
+				},
 				ruff_format = {
 					command = "uv",
 					args = { "run", "--", "ruff", "format", "--force-exclude", "--stdin-filename", "$FILENAME", "-" },

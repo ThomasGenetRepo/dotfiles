@@ -46,6 +46,17 @@ map("n", "<C-u>", "<C-u>zz", {
 	desc = "Half-page up",
 })
 
+-- Scroll the view without moving the cursor. Plain <C-e>/<C-y> would do
+-- this natively, but harpoon.lua takes <C-e> for its quick menu, so use
+-- these instead.
+map("n", "<C-Down>", "<C-e>", {
+	desc = "Scroll view down (cursor stays)",
+})
+
+map("n", "<C-Up>", "<C-y>", {
+	desc = "Scroll view up (cursor stays)",
+})
+
 -- Search next/previous and center result.
 map("n", "n", "nzzzv", {
 	desc = "Next search result",
@@ -53,6 +64,23 @@ map("n", "n", "nzzzv", {
 
 map("n", "N", "Nzzzv", {
 	desc = "Previous search result",
+})
+
+-- j/k move by display line (wrap is on, so a long wrapped comment/string
+-- shouldn't skip a whole logical line per keypress). A count > 1 falls back
+-- to real linewise j/k (counting display lines would be confusing) and
+-- drops a mark first so '' still jumps back, matching normal j/k behavior
+-- for a "real" multi-line jump.
+map("n", "k", [[v:count > 1 ? "m'" . v:count . "k" : "gk"]], {
+	expr = true,
+	silent = true,
+	desc = "Up (display line)",
+})
+
+map("n", "j", [[v:count > 1 ? "m'" . v:count . "j" : "gj"]], {
+	expr = true,
+	silent = true,
+	desc = "Down (display line)",
 })
 
 -- Native undo/redo reminders:
@@ -160,9 +188,15 @@ map("n", "<leader>li", "<cmd>checkhealth vim.lsp<cr>", {
 	desc = "LSP info",
 })
 
--- Restart every LSP client on the current buffer, then reload the file so
+-- Restart every LSP client on the current buffer, then re-fire FileType so
 -- the enabled servers re-attach with fresh project state. Useful when the
 -- server goes stale relative to on-disk changes made in another tmux pane.
+--
+-- Re-fires FileType directly (rather than `:edit`) because vim.lsp.enable()
+-- attaches clients via a FileType autocommand, and Vim only re-triggers
+-- FileType when the filetype value actually changes -- re-opening a buffer
+-- whose filetype is unchanged (e.g. still "python") is a silent no-op, and
+-- `:edit` errors outright (E37) if the buffer has unsaved changes.
 map("n", "<leader>lr", function()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local clients = vim.lsp.get_clients({ bufnr = bufnr })
@@ -173,14 +207,15 @@ map("n", "<leader>lr", function()
 	end
 
 	local names = {}
+	local filetype = vim.bo[bufnr].filetype
 	for _, client in ipairs(clients) do
 		table.insert(names, client.name)
 		vim.lsp.stop_client(client.id)
 	end
 
-	-- Give the clients a moment to exit before re-attaching via :edit.
+	-- Give the clients a moment to exit before re-attaching.
 	vim.defer_fn(function()
-		vim.cmd("edit")
+		vim.api.nvim_exec_autocmds("FileType", { pattern = filetype })
 		vim.notify("Restarted LSP: " .. table.concat(names, ", "), vim.log.levels.INFO)
 	end, 500)
 end, {

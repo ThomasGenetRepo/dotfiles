@@ -89,8 +89,10 @@ local function set_ui_highlights()
 		link = "NormalFloat",
 	})
 
+	-- Same signature accent as WinSeparator below, so completion/doc floats
+	-- read as deliberately framed instead of blending into the background.
 	vim.api.nvim_set_hl(0, "BlinkCmpMenuBorder", {
-		link = "FloatBorder",
+		fg = "#c4a7e7",
 	})
 
 	vim.api.nvim_set_hl(0, "BlinkCmpMenuSelection", {
@@ -103,13 +105,66 @@ local function set_ui_highlights()
 	})
 
 	vim.api.nvim_set_hl(0, "BlinkCmpDocBorder", {
-		link = "FloatBorder",
+		fg = "#c4a7e7",
 	})
 
 	-- blink.cmp labels/kinds.
+	-- Generic fallback for any kind not covered below.
 	vim.api.nvim_set_hl(0, "BlinkCmpKind", {
 		link = "Type",
 	})
+
+	-- Per-kind colors, sourced from the theme's own syntax groups so they
+	-- adapt across whichever colortheme.lua theme is active (same trick as
+	-- mode_cursorline_colors above). Without this every kind fell back to
+	-- the generic BlinkCmpKind group above -- i.e. everything was the same
+	-- flat "Type" color, orange in duskfox, regardless of what it actually
+	-- was (a plain buffer-word match looked exactly as loud as a class).
+	local kind_source_group = {
+		-- Not "Comment" -- too dim when a whole menu is buffer/text
+		-- matches, reading as lifeless rather than "appropriately
+		-- quiet". Not "String" either -- most Text matches happen
+		-- inside actual string literals, so a green suggestion
+		-- camouflaged against real green string content instead of
+		-- reading as a menu. "Number" keeps warmth without colliding
+		-- with any other kind in use.
+		Text = "Number",
+		Method = "Function",
+		Function = "Function",
+		Constructor = "Function",
+		Field = "Identifier",
+		Variable = "Identifier",
+		-- "Statement" rather than "Type" -- Type is orange in duskfox. Every
+		-- other free-standing hue in the theme's named groups is already
+		-- claimed by another kind below, so this reuses Keyword's
+		-- purple; the two rarely appear side by side in a completion list.
+		Class = "Statement",
+		Interface = "Statement",
+		Module = "Include",
+		Property = "Identifier",
+		Unit = "Number",
+		Value = "Constant",
+		Enum = "Statement",
+		Keyword = "Keyword",
+		Snippet = "String",
+		Color = "Constant",
+		File = "Directory",
+		Reference = "Comment",
+		Folder = "Directory",
+		EnumMember = "Constant",
+		Constant = "Constant",
+		Struct = "Statement",
+		Event = "Special",
+		Operator = "Operator",
+		TypeParameter = "Statement",
+	}
+
+	for kind, group in pairs(kind_source_group) do
+		local fg = get_fg(group)
+		if fg then
+			vim.api.nvim_set_hl(0, "BlinkCmpKind" .. kind, { fg = fg })
+		end
+	end
 
 	vim.api.nvim_set_hl(0, "BlinkCmpLabel", {
 		link = "Normal",

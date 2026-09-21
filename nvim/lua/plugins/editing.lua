@@ -89,11 +89,32 @@ return {
 				desc = "Workspace symbols",
 			},
 			{
+				"<leader>fd",
+				function()
+					require("fzf-lua").diagnostics_document()
+				end,
+				desc = "Buffer diagnostics",
+			},
+			{
+				"<leader>fD",
+				function()
+					require("fzf-lua").diagnostics_workspace()
+				end,
+				desc = "Workspace diagnostics",
+			},
+			{
 				"<leader>fr",
 				function()
 					require("fzf-lua").oldfiles()
 				end,
 				desc = "Recent files",
+			},
+			{
+				"<leader>fj",
+				function()
+					require("fzf-lua").jumps()
+				end,
+				desc = "Jumplist",
 			},
 		},
 		opts = {
@@ -109,6 +130,18 @@ return {
 		"windwp/nvim-autopairs",
 		event = "InsertEnter",
 		config = true,
+	},
+
+	-- Neovim's bundled indent/python.vim (python#GetIndent) miscomputes
+	-- indent for a closing bracket when there's a blank/whitespace-only
+	-- line between it and the opener -- e.g. `{<CR><CR>}` ends up with the
+	-- `}` indented a full extra level instead of matching the opener.
+	-- Confirmed via `:lua =python#GetIndent(lnum)` with v:lnum set to
+	-- reproduce what indentexpr actually sees: returns double the correct
+	-- indent. This replaces indentexpr with a version that gets it right.
+	{
+		"Vimjas/vim-python-pep8-indent",
+		ft = "python",
 	},
 
 	-- Pin a handful of files you're actively bouncing between and jump
