@@ -1,0 +1,48 @@
+# ~/.zshrc, symlinked from <dotfiles>/shell/zshrc by install.sh.
+# zsh counterpart to shell/bashrc. Shared config (env, aliases, functions)
+# lives in the *.sh files and is sourced by both shells.
+
+[[ -o interactive ]] || return
+
+# Repo root, resolved from this file's real location (:A follows the
+# symlink), so it works wherever the repo is cloned.
+DOTFILES="${${(%):-%x}:A:h:h}"
+
+# History: large, written as each command runs (so new tmux panes see it),
+# no duplicates, skip space-prefixed commands. macOS's /etc/zshrc defaults
+# SAVEHIST to 1000, so these need to be set here.
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=100000
+SAVEHIST=100000
+setopt APPEND_HISTORY INC_APPEND_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE
+
+# Completion system. Must run before fzf and zoxide init.
+autoload -Uz compinit && compinit
+
+for _f in env aliases functions; do
+  [[ -f "$DOTFILES/shell/$_f.sh" ]] && . "$DOTFILES/shell/$_f.sh"
+done
+unset _f
+
+# Prompt goes first so its precmd hook sees the last command's exit status.
+[[ -f "$DOTFILES/shell/prompt.zsh" ]] && . "$DOTFILES/shell/prompt.zsh"
+
+# zsh has no PROMPT_COMMAND; precmd hooks are the equivalent.
+# autoload -Uz add-zsh-hook
+# add-zsh-hook precmd set_tmux_pane_title
+
+export NVM_DIR="$HOME/.nvm"
+[[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh"
+
+# fzf: Ctrl-R history, Ctrl-T file path, Alt-C cd, **<Tab> completion.
+if command -v fzf >/dev/null 2>&1; then
+  source <(fzf --zsh)
+fi
+
+# zoxide wants to be initialized after compinit, near the end.
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh --cmd cd)"
+fi
+
+# Machine-local config not tracked in git. Kept last so it can override.
+if [[ -f "$HOME/.zshrc.local" ]]; then . "$HOME/.zshrc.local"; fi

@@ -31,6 +31,7 @@ link() {
 }
 
 link shell/bashrc "$HOME/.bashrc"
+link shell/zshrc "$HOME/.zshrc"
 link readline/inputrc "$HOME/.inputrc"
 link tmux/tmux.conf "$HOME/.tmux.conf"
 link nvim "$HOME/.config/nvim"
@@ -39,14 +40,14 @@ link superfile "$HOME/.config/superfile"
 # On WSL this link is inert (WezTerm reads the Windows-side copy); on
 # Linux/macOS it's the live config. See README.
 case "$(uname -s)" in
-  Darwin)
-    link ghostty "$HOME/.config/ghostty"
-    ;;
-  *)
-    # On WSL this link is inert (WezTerm reads the Windows-side copy); on
-    # Linux it's the live config. See README.
-    link wezterm "$HOME/.config/wezterm"
-    ;;
+Darwin)
+  link ghostty "$HOME/.config/ghostty"
+  ;;
+*)
+  # On WSL this link is inert (WezTerm reads the Windows-side copy); on
+  # Linux it's the live config. See README.
+  link wezterm "$HOME/.config/wezterm"
+  ;;
 esac
 
 # tmux plugin manager; the plugins themselves install with prefix + I.
