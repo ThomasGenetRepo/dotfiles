@@ -38,7 +38,16 @@ link eza "$HOME/.config/eza"
 link superfile "$HOME/.config/superfile"
 # On WSL this link is inert (WezTerm reads the Windows-side copy); on
 # Linux/macOS it's the live config. See README.
-link wezterm "$HOME/.config/wezterm"
+case "$(uname -s)" in
+  Darwin)
+    link ghostty "$HOME/.config/ghostty"
+    ;;
+  *)
+    # On WSL this link is inert (WezTerm reads the Windows-side copy); on
+    # Linux it's the live config. See README.
+    link wezterm "$HOME/.config/wezterm"
+    ;;
+esac
 
 # tmux plugin manager; the plugins themselves install with prefix + I.
 if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
