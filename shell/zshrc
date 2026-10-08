@@ -53,7 +53,6 @@ fi
 if [[ -f "$HOME/.zshrc.local" ]]; then . "$HOME/.zshrc.local"; fi
 
 export PATH="$PATH:$(go env GOPATH)/bin"
-``
 
 export LOCALAI_SESSION="localai"
 export LOCALAI_STATE_DIR="$HOME/.local/state/localai"
