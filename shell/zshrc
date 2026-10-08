@@ -51,3 +51,20 @@ fi
 
 # Machine-local config not tracked in git. Kept last so it can override.
 if [[ -f "$HOME/.zshrc.local" ]]; then . "$HOME/.zshrc.local"; fi
+
+export PATH="$PATH:$(go env GOPATH)/bin"
+``
+
+export LOCALAI_SESSION="localai"
+export LOCALAI_STATE_DIR="$HOME/.local/state/localai"
+
+export LOCALAI_MTPLX_MODEL="Youssofal/Qwen3.8-27B-MTPLX-Optimized-Speed"
+export LOCALAI_MTPLX_HOST="127.0.0.1"
+export LOCALAI_MTPLX_PORT="8000"
+export LOCALAI_MTPLX_KV="q8"
+export LOCALAI_MTPLX_SSD_CACHE="on"
+
+export LOCALAI_LOG_RETENTION_DAYS="14"
+export LOCALAI_START_TIMEOUT="60"
+
+source "$HOME/dotfiles/shell/localai.sh"
