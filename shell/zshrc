@@ -25,7 +25,12 @@ done
 unset _f
 
 # Prompt goes first so its precmd hook sees the last command's exit status.
-[[ -f "$DOTFILES/shell/prompt.zsh" ]] && . "$DOTFILES/shell/prompt.zsh"
+# Use starship when installed, else fall back to the built-in prompt.
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+elif [[ -f "$DOTFILES/shell/prompt.zsh" ]]; then
+  . "$DOTFILES/shell/prompt.zsh"
+fi
 
 # zsh has no PROMPT_COMMAND; precmd hooks are the equivalent.
 # autoload -Uz add-zsh-hook
