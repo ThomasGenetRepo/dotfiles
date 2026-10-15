@@ -287,15 +287,9 @@ return {
 				typescript = { "eslint_d" },
 				typescriptreact = { "eslint_d" },
 				svelte = { "eslint_d" },
-				python = { "ruff" },
+				-- Python: ruff runs as an LSP server (see config/lsp.lua),
+				-- not through nvim-lint, so it can offer code actions.
 			}
-
-			-- Run ruff through `uv` (see conform's ruff_format override in
-			-- tools.lua for why) instead of the mason-installed binary.
-			lint.linters.ruff = vim.tbl_deep_extend("force", lint.linters.ruff, {
-				cmd = "uv",
-				args = vim.list_extend({ "run", "--", "ruff" }, lint.linters.ruff.args),
-			})
 
 			local group = vim.api.nvim_create_augroup("UserLint", { clear = true })
 

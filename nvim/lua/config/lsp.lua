@@ -91,6 +91,9 @@ vim.lsp.config("basedpyright", {
 	},
 	settings = {
 		basedpyright = {
+			-- Ruff (below) owns import sorting; avoid two competing
+			-- "organize imports" code actions.
+			disableOrganizeImports = true,
 			analysis = {
 				typeCheckingMode = "standard",
 				autoSearchPaths = true,
@@ -98,6 +101,33 @@ vim.lsp.config("basedpyright", {
 			},
 		},
 	},
+})
+
+-- Ruff as a second Python server, alongside basedpyright. Ruff does the
+-- lint rules + code actions ("fix this", organize imports, noqa insertion);
+-- basedpyright does types, hover, completion and navigation.
+--
+-- Run through `uv` so it uses the project's pinned ruff version (same
+-- reasoning as conform's ruff_format override in plugins/tools.lua).
+-- Requires ruff to be a project dependency, otherwise `uv run ruff`
+-- has nothing to resolve and the server won't start.
+vim.lsp.config("ruff", {
+	cmd = { "uv", "run", "--", "ruff", "server" },
+	filetypes = { "python" },
+	root_markers = {
+		"pyproject.toml",
+		"ruff.toml",
+		".ruff.toml",
+		"setup.py",
+		"setup.cfg",
+		"requirements.txt",
+		".git",
+	},
+	on_attach = function(client)
+		-- basedpyright is the source of truth for hover docs; ruff's
+		-- hover only knows rule codes and would race it on K.
+		client.server_capabilities.hoverProvider = false
+	end,
 })
 
 vim.lsp.config("lua_ls", {
@@ -207,6 +237,7 @@ vim.lsp.config("yamlls", {
 vim.lsp.enable({
 	"gopls",
 	"basedpyright",
+	"ruff",
 	"lua_ls",
 	"terraformls",
 	"ts_ls",

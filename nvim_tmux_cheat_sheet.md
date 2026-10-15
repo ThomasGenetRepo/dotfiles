@@ -355,7 +355,8 @@ Enabled servers (`lua/config/lsp.lua`):
 | Server | Filetypes |
 |--------|-----------|
 | `gopls` | go, gomod, gowork, gotmpl |
-| `basedpyright` | python |
+| `basedpyright` | python — types, hover, completion, navigation |
+| `ruff` | python — lint rules and their code actions (see below) |
 | `lua_ls` | lua |
 | `terraformls` | terraform, terraform-vars |
 | `ts_ls` | javascript, javascriptreact, typescript, typescriptreact |
@@ -387,6 +388,17 @@ Buffer-local, only active once an LSP attaches (set in the `LspAttach` autocomma
 | `<leader>ws` | Workspace symbols |
 | `<leader>ih` | Toggle inlay hints (only if the server supports them) |
 
+Python runs two servers at once. No new keys: the existing `<leader>ca` and `<leader>oi` just gain ruff's actions in Python buffers.
+
+| Key | In a Python buffer |
+|-----|--------------------|
+| `K` | Hover from basedpyright only — ruff's hover (rule-code docs) is disabled on attach so the two don't race |
+| `<leader>ca` | Code actions from both servers: basedpyright's quick fixes plus ruff's *Fix this*, *Fix all auto-fixable*, and *Disable for this line* (inserts a `# noqa: XXX`) |
+| `<leader>oi` | Organize imports via ruff (basedpyright's own organizer is turned off with `disableOrganizeImports` so there's a single action) |
+| `<leader>e` | Line diagnostics from both; the float shows the source when more than one server reports |
+
+Suppression comments follow the tool that reported the diagnostic: `# noqa: XXX` for ruff, `# pyright: ignore[ruleName]` for basedpyright. Ruff's server is launched as `uv run -- ruff server`, so it uses the project's pinned ruff — which means **ruff must be a project dependency** (`uv add --dev ruff`), otherwise `uv run` has nothing to resolve and the server silently doesn't attach (`<leader>li` to check).
+
 ### Linting (nvim-lint, plugin)
 
 No keymaps — runs automatically on `BufWritePost`/`BufReadPost`/`InsertLeave`. Separate from the LSP servers above (some filetypes have no LSP-based lint rules at all).
@@ -394,9 +406,8 @@ No keymaps — runs automatically on `BufWritePost`/`BufReadPost`/`InsertLeave`.
 | Filetype | Linter |
 |----------|--------|
 | javascript, javascriptreact, typescript, typescriptreact, svelte | `eslint_d` |
-| python | `ruff` — routed through `uv run -- ruff ...` instead of the mason-installed global binary, so it resolves your project's pinned version (requires `ruff` to actually be a project dependency, e.g. in `pyproject.toml`) |
 
-The `ruff_format` formatter (below) is routed through `uv` the same way, for the same reason.
+Python is **not** linted here anymore: ruff runs as an LSP server instead (see [LSP](#lsp)), which gives the same diagnostics plus code actions. Running it in both places produced duplicate diagnostics.
 
 ### Fuzzy finding (fzf-lua, plugin)
 
@@ -534,7 +545,7 @@ Note: `<C-\>` used to be bound by vim-tmux-navigator (as "jump to previous tmux 
 |-----|--------|
 | `<leader>f` | Format the buffer (also runs automatically on save) |
 
-Formatters by filetype: `go` (gofumpt, goimports), `python` (ruff_format, via `uv` — see [Linting](#linting-nvim-lint-plugin)), `lua` (stylua), `json`/`jsonc` (jq), `terraform`/`hcl` (terraform_fmt), `sh`/`bash` (shfmt), `javascript`/`javascriptreact`/`typescript`/`typescriptreact`/`svelte`/`html`/`css`/`scss` (prettier).
+Formatters by filetype: `go` (gofumpt, goimports), `python` (ruff_organize_imports then ruff_format, both via `uv run -- ruff` so the project's pinned ruff is used — same dev-dependency requirement as the ruff LSP, see [LSP](#lsp)), `lua` (stylua), `json`/`jsonc` (jq), `terraform`/`hcl` (terraform_fmt), `sh`/`bash` (shfmt), `javascript`/`javascriptreact`/`typescript`/`typescriptreact`/`svelte`/`html`/`css`/`scss` (prettier).
 
 Conform notifies on formatter failure by default (`notify_on_error = true`) — no separate keymap or config needed for that.
 

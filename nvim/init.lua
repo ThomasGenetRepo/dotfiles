@@ -39,6 +39,13 @@ vim.opt.listchars = { tab = "  ", trail = "·" }
 vim.opt.wildmenu = true
 vim.opt.wildoptions = "pum"
 
+-- Folds from treesitter syntax (functions, blocks, classes). Files open
+-- fully unfolded; zc/zo/za close/open/toggle, zM/zR close/open all.
+vim.opt.foldmethod = "expr"
+vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+vim.opt.foldlevelstart = 99
+vim.opt.foldtext = "" -- show the fold's first line with its highlighting
+
 require("config.filetype")
 require("config.keymaps")
 require("config.lazy")
