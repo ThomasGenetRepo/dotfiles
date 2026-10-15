@@ -1,6 +1,7 @@
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/go/bin:$PATH"
 export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+[ -d /usr/local/go/bin ] && export PATH="$PATH:/usr/local/go/bin"
 
 export EDITOR="nvim"
 export VISUAL="nvim"

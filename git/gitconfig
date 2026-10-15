@@ -1,0 +1,40 @@
+# Tracked git config. Machine-specific overrides (alternate identity,
+# work-only URL rewrites, signing keys) go in ~/.gitconfig.local, which is
+# included last and never tracked.
+[user]
+	name = Thomas Genet
+	email = thomas.genet@mosaic.com
+[init]
+	defaultBranch = main
+[core]
+	autocrlf = input
+	pager = delta
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+[merge]
+	conflictStyle = zdiff3
+[push]
+	autoSetupRemote = true
+[fetch]
+	prune = true
+[rerere]
+	enabled = true
+[pull]
+	rebase = false
+# gh is resolved from PATH so this works on any machine once `gh auth
+# login` has run. Answer "No" when gh offers to configure git credentials
+# itself; that would write duplicate entries into this file.
+[credential "https://github.com"]
+	helper =
+	helper = !gh auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !gh auth git-credential
+[include]
+	path = ~/.gitconfig.local
+[diff]
+	tool = nvimdiff
+[difftool "nvimdiff"]
+	cmd = nvim -d \"$LOCAL\" \"$REMOTE\"

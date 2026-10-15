@@ -6,16 +6,40 @@ driven from WSL2 Debian; a macOS pass is pending.
 ## Install
 
 The shell config hardcodes its own location, so the repo must live at
-`~/src/dotfiles`:
+`~/src/dotfiles`. Clone over HTTPS first: a fresh machine has no SSH key
+yet, and `gh auth login` (step 2 below) makes HTTPS pushes work anyway.
 
 ```sh
-git clone <repo-url> ~/src/dotfiles
-~/src/dotfiles/install.sh
+git clone https://github.com/ThomasGenetRepo/dotfiles.git ~/src/dotfiles
+~/src/dotfiles/bootstrap.sh
 ```
 
-`install.sh` is idempotent: correct symlinks are left alone, and anything
-else already sitting at a target path is backed up (`*.bak.<timestamp>`)
-before being replaced. It also clones TPM if missing.
+`bootstrap.sh` (Debian/Ubuntu) does the whole thing: installs every
+dependency listed below, runs `install.sh`, then installs tmux and nvim
+plugins headlessly. It skips anything already present, so re-run it
+freely. It needs `sudo` for apt and for Go under `/usr/local/go`.
+
+On a machine where the tools are already installed (e.g. via Homebrew),
+skip bootstrap and just run `install.sh` plus the two commands under
+"After first run".
+
+Afterwards, by hand:
+
+1. Open a new shell.
+2. `gh auth login`, answering **No** when it offers to configure git
+   credentials -- the tracked gitconfig already routes GitHub auth
+   through `gh`.
+3. Launch nvim once interactively so Mason installs its servers and
+   formatters.
+4. Optionally switch the remote to SSH once a key is registered:
+   `git remote set-url origin git@github.com:ThomasGenetRepo/dotfiles.git`.
+
+### Configs only
+
+`install.sh` on its own just symlinks. It is idempotent: correct symlinks
+are left alone, and anything else already sitting at a target path is
+backed up (`*.bak.<timestamp>`) before being replaced. It also clones TPM
+if missing.
 
 ### What links where
 
@@ -23,6 +47,7 @@ before being replaced. It also clones TPM if missing.
 | ----------------- | ------------------------- | ------------------------------------------- |
 | `shell/bashrc`    | `~/.bashrc`               | Sources the rest of `shell/` by path        |
 | `readline/inputrc`| `~/.inputrc`              | History search on arrows, completion tweaks |
+| `git/gitconfig`   | `~/.gitconfig`            | Includes `~/.gitconfig.local` (untracked)   |
 | `tmux/tmux.conf`  | `~/.tmux.conf`            |                                             |
 | `nvim/`           | `~/.config/nvim`          |                                             |
 | `eza/`            | `~/.config/eza`           | Theme only                                  |
@@ -38,13 +63,19 @@ manually. On Linux/macOS the symlink above is the real config.
 
 ### After first run
 
-- **tmux**: start tmux and press `prefix + I` to install plugins via TPM.
-- **nvim**: first launch bootstraps lazy.nvim, then installs plugins,
-  Mason tools, and treesitter parsers on its own. Give it a minute.
+`bootstrap.sh` already did these; only needed after a bare `install.sh`:
+
+- **tmux**: `~/.tmux/plugins/tpm/bin/install_plugins`, or `prefix + I`
+  inside tmux.
+- **nvim**: `nvim --headless "+Lazy! sync" +qa`, or just launch it; first
+  start bootstraps lazy.nvim, then installs plugins, Mason tools, and
+  treesitter parsers on its own. Give it a minute.
 - Keybinding reference: [`nvim_tmux_cheat_sheet.md`](nvim_tmux_cheat_sheet.md).
 
 ## Dependencies
 
+All installed by `bootstrap.sh` on Debian (apt where the packaged version
+is recent enough, GitHub releases into `~/.local/bin` otherwise).
 Required for the core setup to work as configured:
 
 - **git**, **bash**, **tmux**, **Neovim ≥ 0.11** (uses the native
@@ -74,3 +105,5 @@ Optional / nice to have:
   `~/work/documentation/central-vault`.
 - Per-machine shell config (work env vars, secrets, path overrides)
   goes in `~/.bashrc.local` — sourced last by bashrc, never tracked.
+- Per-machine git config (alternate identity, signing key, URL rewrites)
+  goes in `~/.gitconfig.local` — included last by gitconfig, never tracked.
